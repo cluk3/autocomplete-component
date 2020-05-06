@@ -18,21 +18,30 @@ class Autocomplete extends Component {
       inputText: "",
       suggestions: [],
       showSuggestions: false,
-      isPristine: true,
     };
+
+    this.containerRef = React.createRef();
+    this.latestFetchCall = null;
+  }
+
+  componentDidMount() {
+    document.addEventListener("mousedown", this.handleOutsideClick);
+    document.addEventListener("touchstart", this.handleOutsideClick);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("mousedown", this.handleOutsideClick);
+    document.removeEventListener("touchstart", this.handleOutsideClick);
   }
 
   onFocus = () => {
-    if (this.state.isPristine) {
-      this.handleFetchSuggestions();
-      this.setState({ isPristine: false });
-    } else {
-      this.setState({ showSuggestions: true });
-    }
+    this.handleFetchSuggestions(this.state.inputText);
   };
 
-  onBlur = () => {
-    this.setState({ showSuggestions: false });
+  handleOutsideClick = (e) => {
+    if (!this.containerRef.current.contains(e.target)) {
+      this.setState({ showSuggestions: false });
+    }
   };
 
   handleFetchSuggestions = (input) => {
@@ -63,17 +72,20 @@ class Autocomplete extends Component {
     const { inputText, suggestions, showSuggestions } = this.state;
 
     return (
-      <div onFocus={this.onFocus} tabIndex="-1">
+      <div ref={this.containerRef}>
         <input
           type="text"
           placeholder={this.props.placeholder}
           value={inputText}
+          onFocus={this.onFocus}
           onChange={this.onChange}
         />
         {showSuggestions && (
           <SuggestionsList
             suggestions={suggestions}
-            handleSuggestionClick={() => {}}
+            handleSuggestionClick={(suggestion) => {
+              this.setState({ inputText: suggestion, showSuggestions: false });
+            }}
           />
         )}
       </div>
@@ -89,7 +101,7 @@ export const SuggestionsList = ({ suggestions, handleSuggestionClick }) => {
           <li
             data-testid="suggestion"
             key={suggestion}
-            onClick={handleSuggestionClick}
+            onClick={() => handleSuggestionClick(suggestion)}
           >
             {tokens
               ? tokens.map(({ matches, content }, index) =>

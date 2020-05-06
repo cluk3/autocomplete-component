@@ -33,16 +33,31 @@ describe("Autocomplete component", () => {
     inputElement.focus();
     const suggestions = await findAllByTestId("suggestion");
 
-    expect(suggestions.length).toBe(countries.length);
+    expect(suggestions).toHaveLength(countries.length);
   });
 
-  it("shows proper results when the user types", async () => {
+  it("shows proper suggestions when the user types", async () => {
     const { findByText, inputElement } = setup("Country Name");
 
     fireEvent.change(inputElement, { target: { value: "ita" } });
 
     // no need to expect, findByText throws if it doesn't find any result
     await findByText("Ita");
+  });
+
+  it("hides suggestions when the user clicks away", async () => {
+    const { queryAllByTestId, findByText, inputElement } = setup(
+      "Country Name"
+    );
+
+    fireEvent.change(inputElement, { target: { value: "ita" } });
+
+    // no need to expect, findByText throws if it doesn't find any result
+    await findByText("Ita");
+
+    fireEvent.mouseDown(document.body);
+
+    expect(queryAllByTestId("suggestion")).toHaveLength(0);
   });
 
   it("shows a user friendly message when no suggestions are available", async () => {

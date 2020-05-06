@@ -63,14 +63,12 @@ class Autocomplete extends Component {
     const { inputText, suggestions, showSuggestions } = this.state;
 
     return (
-      <div>
+      <div onFocus={this.onFocus} tabIndex="-1">
         <input
           type="text"
           placeholder={this.props.placeholder}
           value={inputText}
           onChange={this.onChange}
-          onFocus={this.onFocus}
-          onBlur={this.onBlur}
         />
         {showSuggestions && (
           <SuggestionsList
@@ -87,9 +85,23 @@ export const SuggestionsList = ({ suggestions, handleSuggestionClick }) => {
   return (
     <ul>
       {suggestions.length > 0 ? (
-        suggestions.map((s) => (
-          <li data-testid="suggestion" key={s} onClick={handleSuggestionClick}>
-            {s}
+        suggestions.map(({ suggestion, tokens }) => (
+          <li
+            data-testid="suggestion"
+            key={suggestion}
+            onClick={handleSuggestionClick}
+          >
+            {tokens
+              ? tokens.map(({ matches, content }, index) =>
+                  matches ? (
+                    <span key={index} style={{ backgroundColor: "yellow" }}>
+                      {content}
+                    </span>
+                  ) : (
+                    <span key={index}>{content}</span>
+                  )
+                )
+              : suggestion}
           </li>
         ))
       ) : (

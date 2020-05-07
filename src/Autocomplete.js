@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
+import { KEY_CODES } from "./constants";
 
 class Autocomplete extends Component {
   static propTypes = {
@@ -18,6 +19,7 @@ class Autocomplete extends Component {
       inputText: "",
       suggestions: [],
       showSuggestions: false,
+      activeSuggestionIndex: 0,
     };
 
     this.containerRef = React.createRef();
@@ -38,10 +40,45 @@ class Autocomplete extends Component {
     this.handleFetchSuggestions(this.state.inputText);
   };
 
+  onKeyDown = (e) => {
+    const { activeSuggestionIndex, suggestions, showSuggestions } = this.state;
+
+    if (!showSuggestions) return;
+
+    switch (e.keyCode) {
+      case KEY_CODES.ENTER:
+        this.setState({
+          showSuggestions: false,
+          inputText: suggestions[activeSuggestionIndex].suggestion,
+          activeSuggestionIndex: 0,
+        });
+        break;
+      case KEY_CODES.DOWN_ARROW:
+        if (activeSuggestionIndex < suggestions.length - 1) {
+          this.setState({ activeSuggestionIndex: activeSuggestionIndex + 1 });
+        }
+        break;
+      case KEY_CODES.UP_ARROW:
+        if (activeSuggestionIndex > 0) {
+          this.setState({ activeSuggestionIndex: activeSuggestionIndex - 1 });
+        }
+        break;
+      default:
+        return;
+    }
+  };
+
   handleOutsideClick = (e) => {
     if (!this.containerRef.current.contains(e.target)) {
       this.setState({ showSuggestions: false });
     }
+  };
+
+  setActiveSuggestion = (index) => {
+    this.setState({ activeSuggestionIndex: index });
+  };
+  handleSuggestionClick = (suggestion) => {
+    this.setState({ inputText: suggestion, showSuggestions: false });
   };
 
   handleFetchSuggestions = (input) => {
@@ -54,6 +91,7 @@ class Autocomplete extends Component {
         this.setState({
           suggestions,
           showSuggestions: true,
+          activeSuggestionIndex: 0,
         });
     });
   };
@@ -69,23 +107,34 @@ class Autocomplete extends Component {
   };
 
   render() {
-    const { inputText, suggestions, showSuggestions } = this.state;
+    const {
+      inputText,
+      suggestions,
+      showSuggestions,
+      activeSuggestionIndex,
+    } = this.state;
 
     return (
-      <div ref={this.containerRef}>
+      <div
+        ref={this.containerRef}
+        className="autocomplete"
+        style={{ height: 0 }} // needed for click outside logic to work
+      >
         <input
           type="text"
           placeholder={this.props.placeholder}
+          className="autocomplete__input"
           value={inputText}
           onFocus={this.onFocus}
           onChange={this.onChange}
+          onKeyDown={this.onKeyDown}
         />
         {showSuggestions && (
           <SuggestionsList
             suggestions={suggestions}
-            handleSuggestionClick={(suggestion) => {
-              this.setState({ inputText: suggestion, showSuggestions: false });
-            }}
+            activeSuggestionIndex={activeSuggestionIndex}
+            setActiveSuggestion={this.setActiveSuggestion}
+            handleSuggestionClick={this.handleSuggestionClick}
           />
         )}
       </div>
@@ -93,31 +142,44 @@ class Autocomplete extends Component {
   }
 }
 
-export const SuggestionsList = ({ suggestions, handleSuggestionClick }) => {
+export const SuggestionsList = ({
+  suggestions,
+  handleSuggestionClick,
+  activeSuggestionIndex,
+  setActiveSuggestion,
+}) => {
   return (
-    <ul>
+    <ul className="suggestions-list">
       {suggestions.length > 0 ? (
-        suggestions.map(({ suggestion, tokens }) => (
+        suggestions.map(({ suggestion, tokens }, suggestionIndex) => (
           <li
+            className={`suggestions-list__item${
+              activeSuggestionIndex === suggestionIndex
+                ? " suggestions-list__item--active"
+                : ""
+            }`}
             data-testid="suggestion"
             key={suggestion}
             onClick={() => handleSuggestionClick(suggestion)}
+            onMouseEnter={() => setActiveSuggestion(suggestionIndex)}
           >
-            {tokens
-              ? tokens.map(({ matches, content }, index) =>
-                  matches ? (
-                    <span key={index} style={{ backgroundColor: "yellow" }}>
-                      {content}
-                    </span>
-                  ) : (
-                    <span key={index}>{content}</span>
+            <p>
+              {tokens
+                ? tokens.map(({ matches, content }, tokenIndex) =>
+                    matches ? (
+                      <span key={tokenIndex} className="highlighted">
+                        {content}
+                      </span>
+                    ) : (
+                      <span key={tokenIndex}>{content}</span>
+                    )
                   )
-                )
-              : suggestion}
+                : suggestion}
+            </p>
           </li>
         ))
       ) : (
-        <li>No suggestions are available</li>
+        <li className="suggestions-list__item">No suggestions are available</li>
       )}
     </ul>
   );

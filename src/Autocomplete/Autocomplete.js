@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import { KEY_CODES } from "./constants";
+import { KEY_CODES } from "../constants";
+import SuggestionsList from "./SuggestionsList";
+import "Autocomplete.css";
 
 class Autocomplete extends Component {
   static propTypes = {
@@ -20,6 +22,7 @@ class Autocomplete extends Component {
       suggestions: [],
       showSuggestions: false,
       activeSuggestionIndex: 0,
+      hasError: false,
     };
 
     this.containerRef = React.createRef();
@@ -85,15 +88,24 @@ class Autocomplete extends Component {
     const fetchSuggestionCall = this.props.fetchSuggestions(input);
 
     this.latestFetchCall = fetchSuggestionCall;
-    fetchSuggestionCall.then((suggestions) => {
-      // We want only the result from the latest fetch in order to avoid race conditions
-      if (fetchSuggestionCall === this.latestFetchCall)
-        this.setState({
-          suggestions,
-          showSuggestions: true,
-          activeSuggestionIndex: 0,
-        });
-    });
+    fetchSuggestionCall
+      .then((suggestions) => {
+        // We want only the result from the latest fetch in order to avoid race conditions
+        if (fetchSuggestionCall === this.latestFetchCall)
+          this.setState({
+            suggestions,
+            showSuggestions: true,
+            activeSuggestionIndex: 0,
+          });
+      })
+      .catch((e) => {
+        if (fetchSuggestionCall === this.latestFetchCall)
+          this.setState({
+            hasError: true,
+            suggestions: [],
+            showSuggestions: true,
+          });
+      });
   };
 
   onChange = (e) => {
@@ -112,6 +124,7 @@ class Autocomplete extends Component {
       suggestions,
       showSuggestions,
       activeSuggestionIndex,
+      hasError,
     } = this.state;
 
     return (
@@ -135,54 +148,12 @@ class Autocomplete extends Component {
             activeSuggestionIndex={activeSuggestionIndex}
             setActiveSuggestion={this.setActiveSuggestion}
             handleSuggestionClick={this.handleSuggestionClick}
+            hasError={hasError}
           />
         )}
       </div>
     );
   }
 }
-
-export const SuggestionsList = ({
-  suggestions,
-  handleSuggestionClick,
-  activeSuggestionIndex,
-  setActiveSuggestion,
-}) => {
-  return (
-    <ul className="suggestions-list">
-      {suggestions.length > 0 ? (
-        suggestions.map(({ suggestion, tokens }, suggestionIndex) => (
-          <li
-            className={`suggestions-list__item${
-              activeSuggestionIndex === suggestionIndex
-                ? " suggestions-list__item--active"
-                : ""
-            }`}
-            data-testid="suggestion"
-            key={suggestion}
-            onClick={() => handleSuggestionClick(suggestion)}
-            onMouseEnter={() => setActiveSuggestion(suggestionIndex)}
-          >
-            <p>
-              {tokens
-                ? tokens.map(({ matches, content }, tokenIndex) =>
-                    matches ? (
-                      <span key={tokenIndex} className="highlighted">
-                        {content}
-                      </span>
-                    ) : (
-                      <span key={tokenIndex}>{content}</span>
-                    )
-                  )
-                : suggestion}
-            </p>
-          </li>
-        ))
-      ) : (
-        <li className="suggestions-list__item">No suggestions are available</li>
-      )}
-    </ul>
-  );
-};
 
 export default Autocomplete;

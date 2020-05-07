@@ -1,6 +1,6 @@
 import React from "react";
 import "./App.css";
-import Autocomplete from "./Autocomplete";
+import Autocomplete from "./Autocomplete/Autocomplete";
 import fetchCountries from "./fetchCountries";
 
 function App() {

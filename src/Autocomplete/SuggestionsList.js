@@ -23,21 +23,29 @@ export default class SuggestionsList extends React.Component {
     super(props);
 
     this.listRef = React.createRef();
+    this.activeSuggestionRef = React.createRef();
   }
 
   componentDidUpdate() {
-    if (this.props.activeSuggestionIndex > 4) {
+    const { activeSuggestionIndex } = this.props;
+    const activeSuggestionRect = this.activeSuggestionRef.current.getBoundingClientRect();
+    const listRect = this.listRef.current.getBoundingClientRect();
+
+    const relativeYCoord = activeSuggestionRect.top - listRect.top;
+
+    if (
+      relativeYCoord < -activeSuggestionRect.height ||
+      relativeYCoord > listRect.height
+    ) {
       this.listRef.current.scroll({
-        top: 40 * (this.props.activeSuggestionIndex - 4),
-        behavior: "smooth",
-      });
-    } else {
-      this.listRef.current.scroll({
-        top: 0,
+        top:
+          activeSuggestionIndex * activeSuggestionRect.height -
+          listRect.height / 2,
         behavior: "smooth",
       });
     }
   }
+
   render() {
     const {
       suggestions,
@@ -64,6 +72,7 @@ export default class SuggestionsList extends React.Component {
             const isActive = activeSuggestionIndex === suggestionIndex;
             return (
               <li
+                {...(isActive ? { ref: this.activeSuggestionRef } : {})}
                 aria-selected={isActive}
                 role="option"
                 className={`suggestions-list__item${

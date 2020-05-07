@@ -66,7 +66,17 @@ describe("Autocomplete component", () => {
 
     await findByText("No suggestions are available");
   });
-  it("shows a user friendly error message when fetch rejects", async () => {});
+
+  it("shows a user friendly error message when fetch rejects", async () => {
+    const { getByPlaceholderText, findByText } = render(
+      <Autocomplete fetchSuggestions={() => Promise.reject()} />
+    );
+    const inputElement = getByPlaceholderText("Click me to see suggestions");
+
+    fireEvent.focus(inputElement);
+
+    await findByText("Ooops, something went wrong.");
+  });
 
   describe("Keyboard Navigation", () => {
     it("lets user select a suggestion by pressing enter", async () => {

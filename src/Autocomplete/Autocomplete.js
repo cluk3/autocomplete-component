@@ -136,7 +136,7 @@ class Autocomplete extends Component {
         <input
           type="text"
           placeholder={this.props.placeholder}
-          autocomplete="off" //disable browser default autocomplete
+          autoComplete="off" //disable browser default autocomplete
           aria-autocomplete="list"
           className="autocomplete__input"
           value={inputText}

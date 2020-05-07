@@ -1,9 +1,15 @@
 .autocomplete {
-  position: relative;
   width: 40vw;
   margin-top: 2rem;
 }
-
+.autocomplete__label {
+  margin-bottom: 4px;
+  color: #61dafb;
+  display: inline-block;
+}
+.autocomplete__container {
+  position: relative;
+}
 .autocomplete__input {
   color: white;
   width: 40vw;

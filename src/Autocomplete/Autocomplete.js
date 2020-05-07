@@ -4,14 +4,20 @@ import { KEY_CODES } from "../constants";
 import SuggestionsList from "./SuggestionsList";
 import "./Autocomplete.css";
 
+const getUniqueId = () => Math.floor(Math.random() * 100000); // naive way to get a uniqueId
+
 class Autocomplete extends Component {
   static propTypes = {
     fetchSuggestions: PropTypes.func.isRequired,
     placeholder: PropTypes.string,
+    label: PropTypes.string,
+    inputId: PropTypes.string,
   };
 
   static defaultProps = {
     placeholder: "Click me to see suggestions",
+    label: "",
+    inputId: `autocomplete-${getUniqueId()}`,
   };
 
   constructor(props) {
@@ -126,6 +132,7 @@ class Autocomplete extends Component {
       activeSuggestionIndex,
       hasError,
     } = this.state;
+    const { label, placeholder, inputId } = this.props;
 
     return (
       <div
@@ -133,26 +140,34 @@ class Autocomplete extends Component {
         className="autocomplete"
         style={{ height: 0 }} // needed for click outside logic to work
       >
-        <input
-          type="text"
-          placeholder={this.props.placeholder}
-          autoComplete="off" //disable browser default autocomplete
-          aria-autocomplete="list"
-          className="autocomplete__input"
-          value={inputText}
-          onFocus={this.onFocus}
-          onChange={this.onChange}
-          onKeyDown={this.onKeyDown}
-        />
-        {showSuggestions && (
-          <SuggestionsList
-            suggestions={suggestions}
-            activeSuggestionIndex={activeSuggestionIndex}
-            setActiveSuggestion={this.setActiveSuggestion}
-            handleSuggestionClick={this.handleSuggestionClick}
-            hasError={hasError}
-          />
+        {label && (
+          <label htmlFor={inputId} className="autocomplete__label">
+            {label}
+          </label>
         )}
+        <div className="autocomplete__container">
+          <input
+            id={inputId}
+            type="text"
+            placeholder={placeholder}
+            autoComplete="off" //disable browser default autocomplete
+            aria-autocomplete="list"
+            className="autocomplete__input"
+            value={inputText}
+            onFocus={this.onFocus}
+            onChange={this.onChange}
+            onKeyDown={this.onKeyDown}
+          />
+          {showSuggestions && (
+            <SuggestionsList
+              suggestions={suggestions}
+              activeSuggestionIndex={activeSuggestionIndex}
+              setActiveSuggestion={this.setActiveSuggestion}
+              handleSuggestionClick={this.handleSuggestionClick}
+              hasError={hasError}
+            />
+          )}
+        </div>
       </div>
     );
   }

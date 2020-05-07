@@ -4,6 +4,7 @@ import Autocomplete from "./Autocomplete";
 // As this is already a mocked fetch, I can use it for testing too!
 import fetchCountries from "./fetchCountries";
 import countries from "./countries.json";
+import { KEY_CODES } from "./constants";
 
 const setup = (placeholder = "Click me to see suggestions") => {
   const utils = render(
@@ -41,7 +42,6 @@ describe("Autocomplete component", () => {
 
     fireEvent.change(inputElement, { target: { value: "ita" } });
 
-    // no need to expect, findByText throws if it doesn't find any result
     await findByText("Ita");
   });
 
@@ -52,7 +52,6 @@ describe("Autocomplete component", () => {
 
     fireEvent.change(inputElement, { target: { value: "ita" } });
 
-    // no need to expect, findByText throws if it doesn't find any result
     await findByText("Ita");
 
     fireEvent.mouseDown(document.body);
@@ -65,8 +64,50 @@ describe("Autocomplete component", () => {
 
     fireEvent.change(inputElement, { target: { value: "Not a country" } });
 
-    // no need to expect, findByText throws if it doesn't find any result
     await findByText("No suggestions are available");
   });
   it("shows a user friendly error message when fetch rejects", async () => {});
+
+  describe("Keyboard Navigation", () => {
+    it("lets user select a suggestion by pressing enter", async () => {
+      const { findByText, inputElement } = setup("Country Name");
+
+      fireEvent.change(inputElement, { target: { value: "it" } });
+
+      await findByText("It");
+
+      fireEvent.keyDown(inputElement, { keyCode: KEY_CODES.DOWN_ARROW });
+      fireEvent.keyDown(inputElement, { keyCode: KEY_CODES.DOWN_ARROW });
+      fireEvent.keyDown(inputElement, { keyCode: KEY_CODES.ENTER });
+
+      expect(inputElement.value).toBe("Italy");
+    });
+
+    it("keeps the index into bounds", async () => {
+      const { findByText, inputElement } = setup("Country Name");
+
+      fireEvent.change(inputElement, { target: { value: "it" } });
+
+      await findByText("It");
+
+      fireEvent.keyDown(inputElement, { keyCode: KEY_CODES.DOWN_ARROW });
+      fireEvent.keyDown(inputElement, { keyCode: KEY_CODES.UP_ARROW });
+      fireEvent.keyDown(inputElement, { keyCode: KEY_CODES.UP_ARROW });
+      fireEvent.keyDown(inputElement, { keyCode: KEY_CODES.ENTER });
+
+      // first suggestion in the list
+      expect(inputElement.value).toBe("Eritrea");
+
+      fireEvent.change(inputElement, { target: { value: "ita" } });
+
+      await findByText("Ita");
+
+      fireEvent.keyDown(inputElement, { keyCode: KEY_CODES.DOWN_ARROW });
+      fireEvent.keyDown(inputElement, { keyCode: KEY_CODES.DOWN_ARROW });
+      fireEvent.keyDown(inputElement, { keyCode: KEY_CODES.ENTER });
+
+      // second and last suggestion in the list
+      expect(inputElement.value).toBe("Mauritania");
+    });
+  });
 });

@@ -27,6 +27,8 @@ export default class SuggestionsList extends React.Component {
   }
 
   componentDidUpdate() {
+    if (!this.activeSuggestionRef.current) return;
+
     const { activeSuggestionIndex } = this.props;
     const activeSuggestionRect = this.activeSuggestionRef.current.getBoundingClientRect();
     const listRect = this.listRef.current.getBoundingClientRect();

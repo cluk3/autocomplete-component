@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { KEY_CODES } from "../constants";
 import SuggestionsList from "./SuggestionsList";
-import "Autocomplete.css";
+import "./Autocomplete.css";
 
 class Autocomplete extends Component {
   static propTypes = {
@@ -136,6 +136,8 @@ class Autocomplete extends Component {
         <input
           type="text"
           placeholder={this.props.placeholder}
+          autocomplete="off" //disable browser default autocomplete
+          aria-autocomplete="list"
           className="autocomplete__input"
           value={inputText}
           onFocus={this.onFocus}

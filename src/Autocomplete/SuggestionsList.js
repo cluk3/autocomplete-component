@@ -18,23 +18,28 @@ const SuggestionsList = ({
       )
     );
   return (
-    <ul className="suggestions-list">
+    <ul className="suggestions-list" role="listbox">
       {suggestions.length > 0 ? (
-        suggestions.map(({ suggestion, tokens }, suggestionIndex) => (
-          <li
-            className={`suggestions-list__item${
-              activeSuggestionIndex === suggestionIndex
-                ? " suggestions-list__item--active"
-                : ""
-            }`}
-            data-testid="suggestion"
-            key={suggestion}
-            onClick={() => handleSuggestionClick(suggestion)}
-            onMouseEnter={() => setActiveSuggestion(suggestionIndex)}
-          >
-            <p>{tokens ? renderTokens(tokens) : suggestion}</p>
-          </li>
-        ))
+        suggestions.map(({ suggestion, tokens }, suggestionIndex) => {
+          const isActive = activeSuggestionIndex === suggestionIndex;
+          return (
+            <li
+              aria-selected={isActive}
+              role="option"
+              className={`suggestions-list__item${
+                activeSuggestionIndex === suggestionIndex
+                  ? " suggestions-list__item--active"
+                  : ""
+              }`}
+              data-testid="suggestion"
+              key={suggestion}
+              onClick={() => handleSuggestionClick(suggestion)}
+              onMouseEnter={() => setActiveSuggestion(suggestionIndex)}
+            >
+              <div>{tokens ? renderTokens(tokens) : suggestion}</div>
+            </li>
+          );
+        })
       ) : hasError ? (
         <li className="suggestions-list__item suggestions-list__item--error">
           Ooops, something went wrong.
